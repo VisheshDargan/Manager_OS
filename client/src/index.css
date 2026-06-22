@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.status-on-track { background: #DCFCE7; color: #16A34A; }
+.status-at-risk { background: #FEF3C7; color: #D97706; }
+.status-overdue { background: #FEE2E2; color: #DC2626; }
+.status-completed { background: #E2E8F0; color: #475569; }
+
+.scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
