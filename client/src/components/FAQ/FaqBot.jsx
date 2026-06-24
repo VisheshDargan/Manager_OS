@@ -48,8 +48,8 @@ export default function FaqBot() {
     try {
       const res = await aiFaq(doc, q, history);
       setHistory((h) => [...h, { question: q, answer: res.answer }]);
-    } catch {
-      setError('Something went wrong. Please try again.');
+    } catch (e) {
+      setError(`Error: ${e.message}`);
     } finally {
       setLoading(false);
     }
