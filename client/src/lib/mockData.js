@@ -1,10 +1,10 @@
 export const demoUser = {
-  name: 'Arjun Mehta',
+  name: 'Vishesh Dargan',
   role: 'Delivery Head, Enterprise Accounts',
   company: 'Infosys',
   teamSize: 12,
   activeProjects: 6,
-  initials: 'AM',
+  initials: 'VD',
 };
 
 export const teamMembers = [
