@@ -115,6 +115,33 @@ app.post('/api/ai/one-on-one-prep', async (req, res) => {
   }
 });
 
+app.post('/api/ai/faq', async (req, res) => {
+  try {
+    const { document, question, history } = req.body;
+    if (!document?.trim()) return res.status(400).json({ error: 'No document provided' });
+    if (!question?.trim()) return res.status(400).json({ error: 'No question provided' });
+
+    const messages = [
+      ...(history || []).map((h) => [
+        { role: 'user', content: h.question },
+        { role: 'assistant', content: h.answer },
+      ]).flat(),
+      { role: 'user', content: question },
+    ];
+
+    const msg = await anthropic.messages.create({
+      model: MODEL,
+      max_tokens: 800,
+      system: `You are a helpful FAQ assistant. Answer the user's question strictly based on the document content provided below. If the answer is not found in the document, say "I couldn't find that in the provided document." Be concise and direct.\n\n---\nDOCUMENT CONTENT:\n${document}\n---`,
+      messages,
+    });
+    res.json({ answer: msg.content.map((c) => c.text).join('\n') });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'AI request failed' });
+  }
+});
+
 const clientDist = path.join(__dirname, '..', 'client', 'dist');
 app.use(express.static(clientDist));
 app.get(/^(?!\/api).*/, (req, res) => res.sendFile(path.join(clientDist, 'index.html')));

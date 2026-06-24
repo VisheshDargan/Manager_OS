@@ -13,3 +13,4 @@ export const aiEmailBriefing = (emails, totalCount) => post('/ai/email-briefing'
 export const aiEmailThread = (thread) => post('/ai/email-thread', { thread });
 export const aiMeetingNotes = (meeting) => post('/ai/meeting-notes', { meeting });
 export const aiOneOnOnePrep = (member) => post('/ai/one-on-one-prep', { member });
+export const aiFaq = (document, question, history) => post('/ai/faq', { document, question, history });

@@ -8,12 +8,14 @@ import MeetingsOverview from './components/Meetings/MeetingsOverview.jsx';
 import MeetingDetail from './components/Meetings/MeetingDetail.jsx';
 import TeamOverview from './components/Team/TeamOverview.jsx';
 import TeamMemberDetail from './components/Team/TeamMemberDetail.jsx';
+import FaqBot from './components/FAQ/FaqBot.jsx';
 
 const titles = {
   '/': 'Projects Overview',
   '/email': 'Email Copilot',
   '/meetings': 'Meetings',
   '/team': 'My Team',
+  '/faq': 'Smart FAQ Bot',
 };
 
 function pageTitle(pathname) {
@@ -40,6 +42,7 @@ export default function App() {
             <Route path="/meetings/:id" element={<MeetingDetail />} />
             <Route path="/team" element={<TeamOverview />} />
             <Route path="/team/:id" element={<TeamMemberDetail />} />
+            <Route path="/faq" element={<FaqBot />} />
           </Routes>
         </main>
       </div>
