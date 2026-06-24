@@ -117,7 +117,9 @@ app.post('/api/ai/faq', async (req, res) => {
     if (!docText?.trim()) return res.status(400).json({ error: 'No document provided' });
     if (!question?.trim()) return res.status(400).json({ error: 'No question provided' });
 
-    const system = `You are a helpful FAQ assistant. Answer the user's question strictly based on the document content provided below. If the answer is not found in the document, say "I could not find that in the provided document." Be concise and direct.\n\nDOCUMENT CONTENT:\n${docText}`;
+    const system = docText?.trim()
+      ? `You are a smart, friendly AI assistant called ManagerOS Copilot. You help enterprise managers with their questions. A reference document has been provided — use it to answer document-related questions. For general questions, greetings, or anything not covered in the document, just respond naturally and helpfully like a knowledgeable assistant would.\n\nREFERENCE DOCUMENT:\n${docText}`
+      : `You are a smart, friendly AI assistant called ManagerOS Copilot. You help enterprise managers with their questions about projects, teams, clients, and work. Be conversational, helpful, and concise.`;
 
     const userMessage = history && history.length > 0
       ? `Previous questions:\n${history.map((h) => `Q: ${h.question}\nA: ${h.answer}`).join('\n\n')}\n\nNew question: ${question}`

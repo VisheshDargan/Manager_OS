@@ -40,7 +40,7 @@ export default function FaqBot() {
 
   const handleSend = async () => {
     const q = question.trim();
-    if (!q || !doc.trim() || loading) return;
+    if (!q || loading) return;
     setQuestion('');
     setError('');
     setLoading(true);
@@ -109,8 +109,8 @@ export default function FaqBot() {
       <div className="flex-1 flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
           <span className="text-accent text-base">✦</span>
-          <h3 className="font-semibold text-slate-800">Smart FAQ Bot</h3>
-          <span className="text-xs text-slate-400 ml-1">— answers from your document only</span>
+          <h3 className="font-semibold text-slate-800">ManagerOS Copilot</h3>
+          <span className="text-xs text-slate-400 ml-1">— chat freely, or paste a document to ask questions about it</span>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 scrollbar-thin">
@@ -119,8 +119,8 @@ export default function FaqBot() {
               <span className="text-4xl">💬</span>
               <p className="text-sm max-w-xs">
                 {doc.trim()
-                  ? 'Document loaded. Ask your first question below.'
-                  : 'Paste your document on the left, then ask anything about it here.'}
+                  ? 'Document loaded. Ask anything — about the document or anything else.'
+                  : 'Ask me anything. Optionally paste a document on the left to ask questions about it.'}
               </p>
             </div>
           )}
@@ -160,14 +160,14 @@ export default function FaqBot() {
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={doc.trim() ? 'Ask a question about your document…' : 'Paste a document first, then ask here…'}
-              disabled={!doc.trim() || loading}
+              placeholder="Ask me anything…"
+              disabled={loading}
               rows={2}
               className="flex-1 bg-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent/40 resize-none disabled:opacity-50 placeholder:text-slate-400"
             />
             <button
               onClick={handleSend}
-              disabled={!question.trim() || !doc.trim() || loading}
+              disabled={!question.trim() || loading}
               className="bg-accent text-white rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-blue-700 disabled:opacity-40 transition shrink-0"
             >
               Send
