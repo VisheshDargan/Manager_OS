@@ -7,7 +7,6 @@ const navItems = [
   { to: '/email', label: 'Email Copilot', icon: '✉️' },
   { to: '/meetings', label: 'Meetings', icon: '📅' },
   { to: '/team', label: 'My Team', icon: '👥' },
-  { to: '/faq', label: 'Smart FAQ Bot', icon: '💬' },
 ];
 
 export default function Sidebar() {

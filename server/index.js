@@ -111,18 +111,27 @@ app.post('/api/ai/one-on-one-prep', async (req, res) => {
   }
 });
 
+const { projects, teamMembers, demoUser } = require('./mockData.js');
+
 app.post('/api/ai/faq', async (req, res) => {
   try {
-    const { document: docText, question, history } = req.body;
-    if (!docText?.trim()) return res.status(400).json({ error: 'No document provided' });
+    const { question, history } = req.body;
     if (!question?.trim()) return res.status(400).json({ error: 'No question provided' });
 
-    const system = docText?.trim()
-      ? `You are a smart, friendly AI assistant called ManagerOS Copilot. You help enterprise managers with their questions. A reference document has been provided — use it to answer document-related questions. For general questions, greetings, or anything not covered in the document, just respond naturally and helpfully like a knowledgeable assistant would.\n\nREFERENCE DOCUMENT:\n${docText}`
-      : `You are a smart, friendly AI assistant called ManagerOS Copilot. You help enterprise managers with their questions about projects, teams, clients, and work. Be conversational, helpful, and concise.`;
+    const context = `
+MANAGER: ${demoUser.name}, ${demoUser.role} at ${demoUser.company}
+
+PROJECTS:
+${JSON.stringify(projects, null, 2)}
+
+TEAM MEMBERS:
+${JSON.stringify(teamMembers, null, 2)}
+    `.trim();
+
+    const system = `You are ManagerOS Copilot, a smart AI assistant for ${demoUser.name}, a Delivery Head at ${demoUser.company}. You have full knowledge of their current projects, tasks, team members, workloads, and deadlines — all provided below. Answer questions conversationally and specifically, referencing real project names, task owners, and dates from the data. For general questions or greetings, respond naturally.\n\nDATA:\n${context}`;
 
     const userMessage = history && history.length > 0
-      ? `Previous questions:\n${history.map((h) => `Q: ${h.question}\nA: ${h.answer}`).join('\n\n')}\n\nNew question: ${question}`
+      ? `Previous conversation:\n${history.map((h) => `Q: ${h.question}\nA: ${h.answer}`).join('\n\n')}\n\nNew question: ${question}`
       : question;
 
     const answer = await ask(system, userMessage);
