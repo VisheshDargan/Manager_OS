@@ -117,28 +117,21 @@ app.post('/api/ai/one-on-one-prep', async (req, res) => {
 
 app.post('/api/ai/faq', async (req, res) => {
   try {
-    const { document, question, history } = req.body;
-    if (!document?.trim()) return res.status(400).json({ error: 'No document provided' });
+    const { document: docText, question, history } = req.body;
+    if (!docText?.trim()) return res.status(400).json({ error: 'No document provided' });
     if (!question?.trim()) return res.status(400).json({ error: 'No question provided' });
 
-    const messages = [
-      ...(history || []).map((h) => [
-        { role: 'user', content: h.question },
-        { role: 'assistant', content: h.answer },
-      ]).flat(),
-      { role: 'user', content: question },
-    ];
+    const system = `You are a helpful FAQ assistant. Answer the user's question strictly based on the document content provided below. If the answer is not found in the document, say "I could not find that in the provided document." Be concise and direct.\n\nDOCUMENT CONTENT:\n${docText}`;
 
-    const msg = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: 800,
-      system: `You are a helpful FAQ assistant. Answer the user's question strictly based on the document content provided below. If the answer is not found in the document, say "I couldn't find that in the provided document." Be concise and direct.\n\n---\nDOCUMENT CONTENT:\n${document}\n---`,
-      messages,
-    });
-    res.json({ answer: msg.content.map((c) => c.text).join('\n') });
+    const userMessage = history && history.length > 0
+      ? `Previous questions:\n${history.map((h) => `Q: ${h.question}\nA: ${h.answer}`).join('\n\n')}\n\nNew question: ${question}`
+      : question;
+
+    const answer = await ask(system, userMessage, 800);
+    res.json({ answer });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'AI request failed' });
+    console.error('FAQ error:', e.message);
+    res.status(500).json({ error: e.message || 'AI request failed' });
   }
 });
 
