@@ -2,23 +2,22 @@ require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
-const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const MODEL = 'claude-sonnet-4-6';
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const MODEL = 'gemini-2.5-flash';
 
-async function ask(system, user, maxTokens = 600) {
-  const msg = await anthropic.messages.create({
+async function ask(system, user) {
+  const model = genAI.getGenerativeModel({
     model: MODEL,
-    max_tokens: maxTokens,
-    system,
-    messages: [{ role: 'user', content: user }],
+    systemInstruction: system,
   });
-  return msg.content.map((c) => c.text).join('\n');
+  const result = await model.generateContent(user);
+  return result.response.text();
 }
 
 app.post('/api/ai/project-summary', async (req, res) => {
@@ -30,8 +29,8 @@ app.post('/api/ai/project-summary', async (req, res) => {
     );
     res.json({ summary: text });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'AI request failed' });
+    console.error('project-summary error:', e.message);
+    res.status(500).json({ error: e.message || 'AI request failed' });
   }
 });
 
@@ -44,8 +43,8 @@ app.post('/api/ai/email-briefing', async (req, res) => {
     );
     res.json({ briefing: text });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'AI request failed' });
+    console.error('email-briefing error:', e.message);
+    res.status(500).json({ error: e.message || 'AI request failed' });
   }
 });
 
@@ -53,9 +52,8 @@ app.post('/api/ai/email-thread', async (req, res) => {
   try {
     const { thread } = req.body;
     const text = await ask(
-      `You are an AI assistant inside an enterprise email copilot. Given an email thread (array of messages), respond ONLY with valid JSON of the shape {"summary": string, "replies": [string, string, string]}. The summary should be 2-3 sentences capturing the thread context and what's being asked. The replies should be 3 short, distinct one-line reply options the manager could send, appropriate in tone to the thread. Do not include any markdown or extra text outside the JSON.`,
-      JSON.stringify(thread, null, 2),
-      500
+      'You are an AI assistant inside an enterprise email copilot. Given an email thread (array of messages), respond ONLY with valid JSON of the shape {"summary": string, "replies": [string, string, string]}. The summary should be 2-3 sentences capturing the thread context and what is being asked. The replies should be 3 short, distinct one-line reply options the manager could send, appropriate in tone to the thread. Do not include any markdown or extra text outside the JSON.',
+      JSON.stringify(thread, null, 2)
     );
     let parsed;
     try {
@@ -66,8 +64,8 @@ app.post('/api/ai/email-thread', async (req, res) => {
     }
     res.json(parsed);
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'AI request failed' });
+    console.error('email-thread error:', e.message);
+    res.status(500).json({ error: e.message || 'AI request failed' });
   }
 });
 
@@ -75,9 +73,8 @@ app.post('/api/ai/meeting-notes', async (req, res) => {
   try {
     const { meeting } = req.body;
     const text = await ask(
-      `You are an AI assistant generating meeting notes for an enterprise manager. Given meeting context (title, attendees, agenda/mock transcript hints), respond ONLY with valid JSON of the shape {"summary": string, "decisions": string[], "actionItems": [{"item": string, "owner": string, "dueDate": string}], "nextSteps": string}. Make it realistic and specific to the meeting title and attendees given. Do not include markdown or text outside the JSON.`,
-      JSON.stringify(meeting, null, 2),
-      800
+      'You are an AI assistant generating meeting notes for an enterprise manager. Given meeting context (title, attendees, agenda/mock transcript hints), respond ONLY with valid JSON of the shape {"summary": string, "decisions": string[], "actionItems": [{"item": string, "owner": string, "dueDate": string}], "nextSteps": string}. Make it realistic and specific to the meeting title and attendees given. Do not include markdown or text outside the JSON.',
+      JSON.stringify(meeting, null, 2)
     );
     let parsed;
     try {
@@ -88,8 +85,8 @@ app.post('/api/ai/meeting-notes', async (req, res) => {
     }
     res.json(parsed);
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'AI request failed' });
+    console.error('meeting-notes error:', e.message);
+    res.status(500).json({ error: e.message || 'AI request failed' });
   }
 });
 
@@ -97,9 +94,8 @@ app.post('/api/ai/one-on-one-prep', async (req, res) => {
   try {
     const { member } = req.body;
     const text = await ask(
-      `You are an AI assistant helping a manager prepare for a 1:1 with a direct report. Given the team member's profile (workload, leave status, feedback history, tasks), respond ONLY with valid JSON of the shape {"wentWell": string[], "needsAttention": string[], "questions": string[], "developmentOpportunities": string[]}. Be specific to this person's situation. Do not include markdown or text outside the JSON.`,
-      JSON.stringify(member, null, 2),
-      700
+      'You are an AI assistant helping a manager prepare for a 1:1 with a direct report. Given the team member\'s profile (workload, leave status, feedback history, tasks), respond ONLY with valid JSON of the shape {"wentWell": string[], "needsAttention": string[], "questions": string[], "developmentOpportunities": string[]}. Be specific to this person\'s situation. Do not include markdown or text outside the JSON.',
+      JSON.stringify(member, null, 2)
     );
     let parsed;
     try {
@@ -110,8 +106,8 @@ app.post('/api/ai/one-on-one-prep', async (req, res) => {
     }
     res.json(parsed);
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'AI request failed' });
+    console.error('one-on-one error:', e.message);
+    res.status(500).json({ error: e.message || 'AI request failed' });
   }
 });
 
@@ -127,7 +123,7 @@ app.post('/api/ai/faq', async (req, res) => {
       ? `Previous questions:\n${history.map((h) => `Q: ${h.question}\nA: ${h.answer}`).join('\n\n')}\n\nNew question: ${question}`
       : question;
 
-    const answer = await ask(system, userMessage, 800);
+    const answer = await ask(system, userMessage);
     res.json({ answer });
   } catch (e) {
     console.error('FAQ error:', e.message);
